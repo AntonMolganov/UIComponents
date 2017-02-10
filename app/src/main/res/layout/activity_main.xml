@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:searchbar="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.uicomponentstest.MainActivity">
+
+<com.example.uicomponents.SearchBar
+    android:id="@+id/searchbar"
+    android:layout_centerInParent="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+
+    searchbar:menuDrawable="@drawable/ic_menu_black_24dp"
+    searchbar:searchDrawable="@drawable/ic_search_black_24dp"
+    searchbar:clearDrawable="@drawable/ic_clear_black_24dp"
+
+    searchbar:radius="2dp"
+    searchbar:backgroundColor="#FFFFFFFF"
+    searchbar:textColor="#FF000000"
+    searchbar:textSize="8sp"
+    searchbar:hint="Hint"
+    />
+
+
+
+<com.example.uicomponents.AdvancedSearchBar
+        android:id="@+id/advsearchbar"
+        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_alignParentTop="true"
+
+        searchbar:hint="Hint"
+    />
+
+
+
+</RelativeLayout>
+

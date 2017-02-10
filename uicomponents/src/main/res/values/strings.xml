@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">UIComponents</string>
+    <string name="menu_content_desc">Menu icon</string>
+    <string name="search_content_desc">Searcg icon</string>
+    <string name="clear_content_desc">Clear input icon</string>
+    <string name="logo_content_desc">Logo icon</string>
+
+</resources>

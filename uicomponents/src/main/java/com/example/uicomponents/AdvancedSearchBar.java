@@ -474,7 +474,6 @@ public class AdvancedSearchBar extends FrameLayout {
         @Override
         public void dismiss() {
             super.dismiss();
-
         }
     }
 

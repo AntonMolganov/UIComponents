@@ -6,6 +6,8 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -29,6 +31,7 @@ public class AdvancedSearchBar extends FrameLayout {
     private static final int DEFAULT_HEIGHT_DP = 50;
 
     private final static int DEFAULT_BG_COLOR = 0xffffffff;
+
     private final static int DEFAULT_TEXT_COLOR = 0xff000000;
     private final static float DEFAULT_TEXT_SIZE_SP = 8f;
     private final static int DEFAULT_HINT_COLOR = 0xff808080;
@@ -157,6 +160,9 @@ public class AdvancedSearchBar extends FrameLayout {
         gdr_bot.setCornerRadii(radii_bot);
 
         mRLInput.setBackground(gdr_all);
+
+
+
 
         mIVMenu.setImageDrawable(mContext.getResources().getDrawable(mMenuDrawableId));
         mIVSearch.setImageDrawable(mContext.getResources().getDrawable(mSearchDrawableId));
@@ -502,7 +508,66 @@ public class AdvancedSearchBar extends FrameLayout {
         }
     }
 
+    private static class SavedState extends BaseSavedState {
+        private CharSequence mSearchString = null;
+        private boolean mFocus = false;
 
+        private SavedState(Parcelable superState, CharSequence searchString, boolean focus) {
+            super(superState);
+            this.mSearchString = searchString;
+            mFocus = focus;
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            mSearchString = in.readString();
+            mFocus = (in.readByte() == 1);
+        }
+
+        public CharSequence getSearchString() {
+            return mSearchString;
+        }
+
+        public boolean getFocus() {
+            return mFocus;
+        }
+
+
+        @Override
+        public void writeToParcel(Parcel destination, int flags) {
+            super.writeToParcel(destination, flags);
+            destination.writeString(mSearchString.toString());
+            destination.writeByte((byte)(mFocus ? 1 : 0));
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        return new SavedState(superState, mDialog_ETSearchString.getText(), mDialog.isShowing());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        mDialog_ETSearchString.setText(savedState.getSearchString());
+        if (savedState.getFocus()) {
+            mDialog.show();
+        }else{
+            mDialog.dismiss();
+        }
+    }
 
     public static int convertDpToPixels(float dp, Context context) {
         int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());

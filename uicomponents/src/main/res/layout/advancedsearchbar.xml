@@ -75,6 +75,12 @@
             android:visibility="gone"/>
     </RelativeLayout>
 
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"/>
+
     <ListView
         android:id="@+id/lv_results"
         android:layout_width="match_parent"

@@ -216,6 +216,10 @@ public class AdvancedSearchBar extends FrameLayout {
         mDialog.show();
     }
 
+    public void closeInput(){
+        mDialog.dismiss();
+    }
+
     public void setOnMenuClickListener(OnClickListener l) {
         mOnMenuClickListener = l;
     }
@@ -241,6 +245,8 @@ public class AdvancedSearchBar extends FrameLayout {
         mRLLogo.removeAllViews();
         mRLLogo.addView(logo);
     }
+
+
 
     private void applyCurrentLocation(AdvancedSearchBarDialog d){
         int[] location = new int[2];

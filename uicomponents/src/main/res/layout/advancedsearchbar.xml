@@ -12,23 +12,22 @@
         <ImageView
             android:id="@+id/img_menu"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:scaleType="centerInside"
             android:adjustViewBounds="true"
             android:contentDescription="@string/menu_content_desc"
-            android:layout_margin="10dp"
+            android:padding="10dp"
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
-            android:src="@null"
-            />
+            android:src="@null"/>
 
         <ImageView
             android:id="@+id/img_search"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:scaleType="centerInside"
             android:adjustViewBounds="true"
-            android:layout_margin="10dp"
+            android:padding="10dp"
             android:contentDescription="@string/search_content_desc"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
@@ -42,7 +41,7 @@
             android:scaleType="centerInside"
             android:adjustViewBounds="true"
             android:contentDescription="@string/clear_content_desc"
-            android:layout_margin="10dp"
+            android:padding="10dp"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
 

@@ -4,10 +4,13 @@ import android.animation.LayoutTransition;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.util.AttributeSet;
@@ -25,6 +28,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     private static final int ANIMATION_DURATION = 150;
     private static final int DEFAULT_STATES_QTY = 2;
     private static final int DEFAULT_STATE = 0;
+    private static final boolean DEFAULT_ENABLED = true;
+    private static final int DEFAULT_DIRECTION = DIRECTION_RIGHT;
 
     private static final int DIRECTION_RIGHT = 0;
     private static final int DIRECTION_LEFT = 1;
@@ -35,6 +40,18 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     private static final int DEFAULT_BAR_COLOR = 0xFF7E7E7E;
     private static final int DEFAULT_TOGGLE_COLOR = 0xFF616161;
+    
+    private static final String BUNDLE_KEY_STATE = "CurrentState";
+    private static final String BUNDLE_KEY_STATES_QTY = "StateQty";
+    private static final String BUNDLE_KEY_DIRECTION = "Direction";
+    private static final String BUNDLE_KEY_ENABLED = "Enabled";
+    private static final String BUNDLE_KEY_BAR_COLOR = "BarColor";
+    private static final String BUNDLE_KEY_TOGGLE_COLOR = "ToggleColor";
+    private static final String BUNDLE_KEY_TOGGLE_DRAWABLE = "ToggleDrawable";
+    private static final String BUNDLE_BAR_COLORS = "BarColors";
+    private static final String BUNDLE_TOGGLE_COLORS = "ToggleColors";
+    private static final String BUNDLE_TOGGLE_DRAWABLES = "ToggleDrawables";
+
 
 
     private LayoutTransition mLayoutTransition;
@@ -115,6 +132,38 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     }
 
     @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = (Bundle) super.onSaveInstanceState();
+        bundle.putInt(BUNDLE_KEY_STATE, mCurrentState);
+        bundle.putInt(BUNDLE_KEY_STATES_QTY, mStatesQty);
+        bundle.putBoolean(BUNDLE_KEY_ENABLED, mEnabled);
+        bundle.putInt(BUNDLE_KEY_DIRECTION, mDirection);
+        bundle.putInt(BUNDLE_KEY_BAR_COLOR, mBarColor);
+        bundle.putInt(BUNDLE_KEY_TOGGLE_COLOR, mToggleColor);
+        bundle.putIntArray(BUNDLE_BAR_COLORS, mBarColors);
+        bundle.putIntArray(BUNDLE_TOGGLE_COLORS, mToggleColors);
+        return bundle;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        super.onRestoreInstanceState(state);
+        Bundle prevState = (Bundle) state;
+        mCurrentState = prevState.getInt(BUNDLE_KEY_STATE, DEFAULT_STATE);
+        mStatesQty = prevState.getInt(BUNDLE_KEY_STATES_QTY, DEFAULT_STATES_QTY);
+        mEnabled = prevState.getBoolean(BUNDLE_KEY_ENABLED, DEFAULT_ENABLED);
+        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+        mBarColor = prevState.getInt(BUNDLE_KEY_BAR_COLOR, DEFAULT_BAR_COLOR);
+        mToggleColor = prevState.getInt(BUNDLE_KEY_TOGGLE_COLOR, DEFAULT_TOGGLE_COLOR);
+        mBarColors = prevState.getIntArray(BUNDLE_BAR_COLORS);
+        mToggleColors = prevState.getIntArray(BUNDLE_TOGGLE_COLORS);
+        setState(mCurrentState);
+        notifyListeners();
+    }
+
+
+    @Override
     public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
         removeOnLayoutChangeListener(this);
         measure(getMeasuredWidth(), getMeasuredHeight());
@@ -154,9 +203,6 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         }
         return mCurrentState;
     }
-
-
-
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

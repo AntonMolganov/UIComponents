@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -164,9 +165,9 @@ public class AdvancedSearchBar extends FrameLayout {
 
 
 
-        mIVMenu.setImageDrawable(mContext.getResources().getDrawable(mMenuDrawableId));
-        mIVSearch.setImageDrawable(mContext.getResources().getDrawable(mSearchDrawableId));
-        mIVClear.setImageDrawable(mContext.getResources().getDrawable(mSearchDrawableId));
+        mIVMenu.setImageDrawable(ContextCompat.getDrawable(getContext(), mMenuDrawableId));
+        mIVSearch.setImageDrawable(ContextCompat.getDrawable(getContext(), mSearchDrawableId));
+        mIVClear.setImageDrawable(ContextCompat.getDrawable(getContext(), mSearchDrawableId));
 
         mIVMenu.setOnClickListener(new OnClickListener() {
             @Override
@@ -343,9 +344,9 @@ public class AdvancedSearchBar extends FrameLayout {
 
             mDialog_RLInput.setBackground(gdr_all);
 
-            mDialog_IVMenu.setImageDrawable(mContext.getResources().getDrawable(mMenuDrawableId));
-            mDialog_IVSearch.setImageDrawable(mContext.getResources().getDrawable(mSearchDrawableId));
-            mDialog_IVClear.setImageDrawable(mContext.getResources().getDrawable(mClearDrawableId));
+            mDialog_IVMenu.setImageDrawable(ContextCompat.getDrawable(getContext(), mMenuDrawableId));
+            mDialog_IVSearch.setImageDrawable(ContextCompat.getDrawable(getContext(), mSearchDrawableId));
+            mDialog_IVClear.setImageDrawable(ContextCompat.getDrawable(getContext(), mClearDrawableId));
 
             mDialog_IVMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -440,7 +441,7 @@ public class AdvancedSearchBar extends FrameLayout {
                 int display_height = size.y;
 
                 //calculate listview height
-                ViewGroup.MarginLayoutParams mlp = (MarginLayoutParams) mDialog_LVResults.getLayoutParams();
+                MarginLayoutParams mlp = (MarginLayoutParams) mDialog_LVResults.getLayoutParams();
                 int totalHeight = mlp.topMargin + mlp.bottomMargin + mDialog_LVResults.getPaddingTop() + mDialog_LVResults.getPaddingBottom();
                 int desiredWidth = MeasureSpec.makeMeasureSpec(mDialog_LVResults.getWidth(), MeasureSpec.AT_MOST);
                 for (int i = 0; i < a.getCount(); i++) {
@@ -478,7 +479,7 @@ public class AdvancedSearchBar extends FrameLayout {
         public void show() {
             super.show();
             mDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE  | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-            mDialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             mDialog_ETSearchString.requestFocus();
             refreshView();
         }
@@ -530,11 +531,11 @@ public class AdvancedSearchBar extends FrameLayout {
             mFocus = (in.readByte() == 1);
         }
 
-        public CharSequence getSearchString() {
+        CharSequence getSearchString() {
             return mSearchString;
         }
 
-        public boolean getFocus() {
+        boolean getFocus() {
             return mFocus;
         }
 
@@ -546,7 +547,7 @@ public class AdvancedSearchBar extends FrameLayout {
             destination.writeByte((byte)(mFocus ? 1 : 0));
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+        public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
             public SavedState createFromParcel(Parcel in) {
                 return new SavedState(in);
             }
@@ -576,13 +577,11 @@ public class AdvancedSearchBar extends FrameLayout {
     }
 
     public static int convertDpToPixels(float dp, Context context) {
-        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
-        return px;
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
     public static int convertSpToPixels(float sp, Context context) {
-        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
-        return px;
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
     }
 
 }

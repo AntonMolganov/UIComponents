@@ -7,10 +7,22 @@
         <attr name="textSize" format="dimension"/>
         <attr name="hint" format="string"/>
         <attr name="hintColor" format="color"/>
-
         <attr name="menuDrawable" format="reference"/>
         <attr name="searchDrawable" format="reference"/>
         <attr name="clearDrawable" format="reference"/>
+    </declare-styleable>
 
+    <declare-styleable name="MultistateSwitch">
+        <attr name="current_state" format="integer"/>
+        <attr name="states_qty" format="integer"/>
+        <attr name="enabled" format="boolean"/>
+        <attr name="direction" format="enum">
+            <enum name="right" value="0"/>
+            <enum name="left" value="1"/>
+            <enum name="bounce" value="2"/>
+        </attr>
+        <attr name="barColor" format="color"/>
+        <attr name="toggleColor" format="color"/>
+        <attr name="toggleDrawable" format="reference"/>
     </declare-styleable>
 </resources>

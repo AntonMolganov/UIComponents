@@ -1,47 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:searchbar="http://schemas.android.com/apk/res-auto"
+    xmlns:multistateswitch="http://schemas.android.com/apk/res-auto"
+
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF0FFF0"
+    android:background="#FFF0F0F0"
     tools:context="com.example.uicomponentstest.MainActivity">
 
-<com.example.uicomponents.SearchBar
-    android:id="@+id/searchbar"
-    android:layout_centerInParent="true"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
 
-    searchbar:menuDrawable="@drawable/ic_menu_black_24dp"
-    searchbar:searchDrawable="@drawable/ic_search_black_24dp"
-    searchbar:clearDrawable="@drawable/ic_clear_black_24dp"
-
-    searchbar:radius="2dp"
-    searchbar:backgroundColor="#FFFFFFFF"
-    searchbar:textColor="#FF000000"
-    searchbar:textSize="8sp"
-    searchbar:hint="Hint"
-    />
-
-
-
-<com.example.uicomponents.AdvancedSearchBar
+    <com.example.uicomponents.AdvancedSearchBar
         android:id="@+id/advsearchbar"
         android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
+        android:layout_marginBottom="20dp"
         android:layout_alignParentTop="true"
-
         searchbar:hint="Hint"
-    />
+        />
 
+    <com.example.uicomponents.SearchBar
+        android:id="@+id/searchbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="20dp"
 
+        android:layout_centerHorizontal="true"
+        searchbar:menuDrawable="@drawable/ic_menu_black_24dp"
+        searchbar:searchDrawable="@drawable/ic_search_black_24dp"
+        searchbar:clearDrawable="@drawable/ic_clear_black_24dp"
+        searchbar:radius="2dp"
+        searchbar:backgroundColor="#FFFFFFFF"
+        searchbar:textColor="#FF000000"
+        searchbar:textSize="8sp"
+        searchbar:hint="Hint"
+        android:layout_below="@id/advsearchbar"
+        />
+
+    <RelativeLayout
+        android:id="@+id/ms1_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_margin="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/searchbar">
+
+        <com.example.uicomponents.MultistateSwitch
+            android:id="@+id/ms1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            multistateswitch:current_state="0"
+            multistateswitch:states_qty="4"
+            multistateswitch:direction="right"
+            multistateswitch:enabled="true"
+            multistateswitch:barColor="@color/grey"
+            multistateswitch:toggleColor="@color/greyDarkDark"/>
+        <TextView
+            android:id="@+id/ms1_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ms1"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/greyDark"
+            android:textSize="18sp"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/ms2_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_margin="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/ms1_container">
+        <com.example.uicomponents.MultistateSwitch
+            android:id="@+id/ms2"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            multistateswitch:current_state="4"
+            multistateswitch:states_qty="7"
+            multistateswitch:direction="bounce"
+            multistateswitch:enabled="true"
+            multistateswitch:toggleDrawable="@drawable/ic_search_black_24dp"
+            multistateswitch:barColor="@color/grey"
+            multistateswitch:toggleColor="@color/grey"/>
+        <TextView
+            android:id="@+id/ms2_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ms2"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/greyDark"
+            android:textSize="18sp"/>
+    </RelativeLayout>
 
 </RelativeLayout>
 

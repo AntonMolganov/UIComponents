@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="multistateswitch_default_interval">20dp</dimen>
+    <dimen name="multistateswitch_default_width">50dp</dimen>
+    <dimen name="multistateswitch_default_height">22dp</dimen>
+</resources>

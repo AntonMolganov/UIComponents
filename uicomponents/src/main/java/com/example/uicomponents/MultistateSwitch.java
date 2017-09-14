@@ -4,7 +4,6 @@ import android.animation.LayoutTransition;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -82,9 +81,9 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     private Drawable[] mToggleDrawables;
 
 
+    private final Collection<StateChangedListener> mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
 
 
-    private Collection<StateChangedListener> mListeners;
 
     public MultistateSwitch(Context context) {
         this(context, null);
@@ -347,7 +346,6 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     public void addStateChangedListener(StateChangedListener listener) {
         if (listener == null) return;
-        if (mListeners == null) mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
         mListeners.add(listener);
     }
 
@@ -355,7 +353,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         if (listener != null && mListeners != null) mListeners.removeAll(Collections.singletonList(listener));
     }
 
-    public void removeAllListeners() {
+    public void removeAllStateChangedListeners() {
         if (mListeners != null) mListeners.clear();
     }
 

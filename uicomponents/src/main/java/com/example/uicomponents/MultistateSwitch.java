@@ -155,6 +155,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         mCurrentState = state;
         setDrawables();
         setPositions();
+        notifyListeners();
     }
 
     private int getNextState() {
@@ -340,7 +341,6 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     public void onClick(View view) {
         if (mEnabled) {
             setState(getNextState(), true);
-            notifyListeners();
         }
     }
 

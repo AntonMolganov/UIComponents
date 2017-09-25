@@ -4,7 +4,6 @@ import android.animation.LayoutTransition;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -24,46 +23,53 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 
-public class MultistateSwitch extends RelativeLayout implements View.OnClickListener, View.OnLayoutChangeListener {
+public class MultistateSwitch extends RelativeLayout implements View.OnClickListener {
     private static final int ANIMATION_DURATION = 150;
-    private static final int DEFAULT_STATES_QTY = 2;
-    private static final int DEFAULT_STATE = 0;
-    private static final boolean DEFAULT_ENABLED = true;
-    private static final int DEFAULT_DIRECTION = DIRECTION_RIGHT;
 
     private static final int DIRECTION_RIGHT = 0;
     private static final int DIRECTION_LEFT = 1;
     private static final int DIRECTION_BOUNCE = 2;
 
-    private static final float ENABLED_ALPHA_VALUE = 1.0f;
+    private static final float ENABLED_ALPHA_VALUE = 1f;
     private static final float DISABLED_ALPHA_VALUE = 0.6f;
 
-    private static final int DEFAULT_BAR_COLOR = 0xFF7E7E7E;
-    private static final int DEFAULT_TOGGLE_COLOR = 0xFF616161;
-    
+    private static final int DEFAULT_STATES_QTY = 2;
+    private static final int DEFAULT_STATE = 0;
+    private static final boolean DEFAULT_ENABLED = true;
+    private static final int DEFAULT_DIRECTION = DIRECTION_RIGHT;
+    private static final float DEFAULT_TOGGLE_SCALE = 1f;
+    private static final int DEFAULT_BAR_COLOR = 0xff4d4d4d;
+    private static final int DEFAULT_TOGGLE_COLOR = 0xffb9b9b9;
+    private static final float DEFAULT_TOGGLE_RELATIVE_PADDING = 0.1f;
+
+
+
     private static final String BUNDLE_KEY_STATE = "CurrentState";
     private static final String BUNDLE_KEY_STATES_QTY = "StateQty";
     private static final String BUNDLE_KEY_DIRECTION = "Direction";
     private static final String BUNDLE_KEY_ENABLED = "Enabled";
     private static final String BUNDLE_KEY_BAR_COLOR = "BarColor";
     private static final String BUNDLE_KEY_TOGGLE_COLOR = "ToggleColor";
-    private static final String BUNDLE_KEY_TOGGLE_DRAWABLE = "ToggleDrawable";
     private static final String BUNDLE_BAR_COLORS = "BarColors";
     private static final String BUNDLE_TOGGLE_COLORS = "ToggleColors";
-    private static final String BUNDLE_TOGGLE_DRAWABLES = "ToggleDrawables";
 
 
 
     private LayoutTransition mLayoutTransition;
+    private RelativeLayout mParentLayout;
     private ToggleImageView mToggle;
     private ImageView mBar;
-    private float mRealDivisionSize;
 
     private int mCurrentState = DEFAULT_STATE;
     private int mStatesQty = DEFAULT_STATES_QTY;
     private boolean mEnabled;
     private int mDirection;
     private int mCurrentDirection;
+
+    private int mSpecifiedDivisionLength;
+    private int mDivisionLength;
+    private float mToggleScale;
+    private float mToggleRelativePadding;
 
     private int mBarColor;
     private int[] mBarColors;
@@ -75,8 +81,9 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     private Drawable[] mToggleDrawables;
 
 
+    private final Collection<StateChangedListener> mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
 
-    private Collection<StateChangedListener> mListeners;
+
 
     public MultistateSwitch(Context context) {
         this(context, null);
@@ -93,15 +100,13 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         inflater.inflate(R.layout.multistateswitch, this, true);
         mToggle = (ToggleImageView) findViewById(R.id.toggle);
         mBar = (ImageView) findViewById(R.id.bar);
-        RelativeLayout mParentLayout = (RelativeLayout) findViewById(R.id.parent);
+        mParentLayout = (RelativeLayout) findViewById(R.id.parent);
         if (mLayoutTransition == null) {
             mLayoutTransition = new LayoutTransition();
             mLayoutTransition.setDuration(ANIMATION_DURATION);
             mLayoutTransition.enableTransitionType(LayoutTransition.CHANGING);
             mLayoutTransition.setInterpolator(LayoutTransition.CHANGING, new FastOutLinearInInterpolator());
         }
-        setLayoutTransition(mLayoutTransition);
-        mParentLayout.setLayoutTransition(mLayoutTransition);
 
         TypedArray typedArray = context.getTheme().obtainStyledAttributes(attrs, R.styleable.MultistateSwitch, defStyleAttr, 0);
         try {
@@ -115,7 +120,10 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             mCurrentDirection = DIRECTION_RIGHT;
             mBarColor = typedArray.getColor(R.styleable.MultistateSwitch_barColor, DEFAULT_BAR_COLOR);
             mToggleColor = typedArray.getColor(R.styleable.MultistateSwitch_toggleColor, DEFAULT_TOGGLE_COLOR);
+            mToggleScale = typedArray.getFloat(R.styleable.MultistateSwitch_toggleScale, DEFAULT_TOGGLE_SCALE);
+            mToggleRelativePadding = typedArray.getFloat(R.styleable.MultistateSwitch_toggleRelativePadding, DEFAULT_TOGGLE_RELATIVE_PADDING);
 
+            mSpecifiedDivisionLength = getResources().getDimensionPixelSize(R.dimen.multistateswitch_default_division_length);
             int toggle_drawable_id = typedArray.getResourceId(R.styleable.MultistateSwitch_toggleDrawable, 0);
             if (toggle_drawable_id == 0) {
                 mToggleDrawable = null;
@@ -126,57 +134,28 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             typedArray.recycle();
         }
 
-        setState(mCurrentState);
-        addOnLayoutChangeListener(this);
+
+        setState(mCurrentState, false);
+
         setOnClickListener(this);
-    }
-
-    @Override
-    protected Parcelable onSaveInstanceState() {
-        Bundle bundle = (Bundle) super.onSaveInstanceState();
-        bundle.putInt(BUNDLE_KEY_STATE, mCurrentState);
-        bundle.putInt(BUNDLE_KEY_STATES_QTY, mStatesQty);
-        bundle.putBoolean(BUNDLE_KEY_ENABLED, mEnabled);
-        bundle.putInt(BUNDLE_KEY_DIRECTION, mDirection);
-        bundle.putInt(BUNDLE_KEY_BAR_COLOR, mBarColor);
-        bundle.putInt(BUNDLE_KEY_TOGGLE_COLOR, mToggleColor);
-        bundle.putIntArray(BUNDLE_BAR_COLORS, mBarColors);
-        bundle.putIntArray(BUNDLE_TOGGLE_COLORS, mToggleColors);
-        return bundle;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        super.onRestoreInstanceState(state);
-        Bundle prevState = (Bundle) state;
-        mCurrentState = prevState.getInt(BUNDLE_KEY_STATE, DEFAULT_STATE);
-        mStatesQty = prevState.getInt(BUNDLE_KEY_STATES_QTY, DEFAULT_STATES_QTY);
-        mEnabled = prevState.getBoolean(BUNDLE_KEY_ENABLED, DEFAULT_ENABLED);
-        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
-        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
-        mBarColor = prevState.getInt(BUNDLE_KEY_BAR_COLOR, DEFAULT_BAR_COLOR);
-        mToggleColor = prevState.getInt(BUNDLE_KEY_TOGGLE_COLOR, DEFAULT_TOGGLE_COLOR);
-        mBarColors = prevState.getIntArray(BUNDLE_BAR_COLORS);
-        mToggleColors = prevState.getIntArray(BUNDLE_TOGGLE_COLORS);
-        setState(mCurrentState);
-        notifyListeners();
-    }
-
-
-    @Override
-    public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
-        removeOnLayoutChangeListener(this);
-        measure(getMeasuredWidth(), getMeasuredHeight());
     }
 
     public int getState(){
         return mCurrentState;
     }
 
-    public void setState(int state) {
+    public void setState(int state, boolean animated) {
+        if (animated){
+            mParentLayout.setLayoutTransition(mLayoutTransition);
+            setLayoutTransition(mLayoutTransition);
+        }else{
+            mParentLayout.setLayoutTransition(null);
+            setLayoutTransition(null);
+        }
         mCurrentState = state;
-        setAppearance();
-        setTogglePosition();
+        setDrawables();
+        setPositions();
+        notifyListeners();
     }
 
     private int getNextState() {
@@ -206,49 +185,76 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
 
-        int defaultWidth = getResources().getDimensionPixelSize(R.dimen.multistateswitch_default_interval)*(mStatesQty -1)+mToggle.getWidth();
+        int width;
+        int height;
 
-        if (widthMode != MeasureSpec.EXACTLY) {
-            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && defaultWidth < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(defaultWidth, MeasureSpec.EXACTLY);
+
+        int default_height = getResources().getDimensionPixelSize(R.dimen.multistateswitch_default_height);
+
+        if (widthMode != MeasureSpec.EXACTLY && heightMode != MeasureSpec.EXACTLY){
+            height = default_height;
+            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && height < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
+            width = mSpecifiedDivisionLength * (mStatesQty - 1) + height;
+            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && width < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+        }else if (widthMode != MeasureSpec.EXACTLY){
+            height = MeasureSpec.getSize(heightMeasureSpec);
+            width = mSpecifiedDivisionLength * (mStatesQty - 1) + height;
+            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && width < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+        }else if (heightMode != MeasureSpec.EXACTLY){
+            width = MeasureSpec.getSize(widthMeasureSpec);
+            if (width < default_height) {
+                height = width;
+            }else{
+                height = default_height;
+            }
+            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && height < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
         }
-
-        int defaultHeight = getResources().getDimensionPixelSize(R.dimen.multistateswitch_default_height);
-        if (heightMode != MeasureSpec.EXACTLY) {
-            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && defaultHeight < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(defaultHeight, MeasureSpec.EXACTLY);
-        }
-
         if (MeasureSpec.getSize(widthMeasureSpec) < MeasureSpec.getSize(heightMeasureSpec)) heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getMode(heightMeasureSpec));
 
+        mDivisionLength = Math.round(((float)MeasureSpec.getSize(widthMeasureSpec) - MeasureSpec.getSize(heightMeasureSpec)) / (mStatesQty - 1));
 
-        int barHeight = mToggle.getHeight() * 2 / 3;
-        int margin = (mToggle.getHeight() - barHeight ) / 2;
-        LayoutParams params = (LayoutParams) mBar.getLayoutParams();
-        params.setMargins(margin, margin, margin, margin);
-        mBar.setLayoutParams(params);
-
-        mRealDivisionSize = ((float)mBar.getWidth() - barHeight) / (mStatesQty - 1);
-        setTogglePosition();
-
+        setPositions();
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    private void setTogglePosition() {
+    private void setPositions() {
+        if (mToggleScale > 1){
+            int barHeight = Math.round((float)mToggle.getHeight()  / mToggleScale);
+            int barMargin = Math.round(((float)getHeight()-barHeight)/2);
+            MarginLayoutParams barParams = ((MarginLayoutParams) mBar.getLayoutParams());
+            barParams.setMargins(barMargin,
+                    barMargin,
+                    barMargin,
+                    barMargin);
+            mBar.setLayoutParams(barParams);
+        }
+
         MarginLayoutParams toggleParams = ((MarginLayoutParams) mToggle.getLayoutParams());
-        int margin = (mCurrentState != mStatesQty - 1) ? (int) (mRealDivisionSize * mCurrentState) : getWidth() - mToggle.getWidth();
-        toggleParams.setMargins(margin,
-                toggleParams.topMargin,
-                toggleParams.rightMargin,
-                toggleParams.bottomMargin);
+        if (mToggleScale < 1){
+            int toggleSize = Math.round(getHeight() * mToggleScale);
+            int toggleVerticalMargin = Math.round((getHeight() - toggleSize) / 2);
+            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? toggleVerticalMargin + mDivisionLength * mCurrentState : getWidth() - mToggle.getWidth() - toggleVerticalMargin;
+            toggleParams.setMargins(toggleLeftMargin,
+                    toggleVerticalMargin,
+                    toggleParams.rightMargin,
+                    toggleVerticalMargin);
+        }else{
+            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? mDivisionLength * mCurrentState : getWidth() - mToggle.getWidth();
+            toggleParams.setMargins(toggleLeftMargin,
+                    toggleParams.topMargin,
+                    toggleParams.rightMargin,
+                    toggleParams.bottomMargin);
+        }
         mToggle.setLayoutParams(toggleParams);
+        int padding = Math.round(mToggle.getWidth() * mToggleRelativePadding);
+        mToggle.setPadding(padding, padding, padding, padding);
     }
 
-    private void setAppearance() {
-
+    private void setDrawables() {
         Drawable nextBarDrawable = ContextCompat.getDrawable(getContext(), R.drawable.multistateswitch);
         ((GradientDrawable) nextBarDrawable).setColor(getBarColor(mCurrentState));
         if (mBar.getDrawable() == null) {
@@ -256,7 +262,6 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         }else{
             Drawable currentBarDrawable = mBar.getDrawable() instanceof TransitionDrawable ? ((TransitionDrawable) mBar.getDrawable()).getDrawable(1) : mBar.getDrawable();
             TransitionDrawable transitionDrawable = new TransitionDrawable(new Drawable[]{ currentBarDrawable, nextBarDrawable});
-            transitionDrawable.setCrossFadeEnabled(true);
             mBar.setImageDrawable(transitionDrawable);
             transitionDrawable.startTransition(ANIMATION_DURATION);
         }
@@ -267,9 +272,9 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             mToggle.setBackground(nextToggleBackgroundDrawable);
         }else{
             Drawable currentToggleBackgroundDrawable = mToggle.getBackground() instanceof TransitionDrawable ? ((TransitionDrawable) mToggle.getBackground()).getDrawable(1) : mToggle.getBackground();
-            TransitionDrawable transitionDrawable = new TransitionDrawable(new Drawable[]{ currentToggleBackgroundDrawable, nextToggleBackgroundDrawable});
-            transitionDrawable.setCrossFadeEnabled(true);
+            TransitionDrawable transitionDrawable = new TransitionDrawable(new Drawable[]{currentToggleBackgroundDrawable, nextToggleBackgroundDrawable});
             mToggle.setBackground(transitionDrawable);
+
             transitionDrawable.startTransition(ANIMATION_DURATION);
         }
 
@@ -279,8 +284,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         }else{
             Drawable currentToggleDrawable = mToggle.getDrawable() instanceof TransitionDrawable ? ((TransitionDrawable) mToggle.getDrawable()).getDrawable(1) : mToggle.getDrawable();
             TransitionDrawable transitionDrawable = new TransitionDrawable(new Drawable[]{ currentToggleDrawable, nextToggleDrawable});
-            transitionDrawable.setCrossFadeEnabled(true);
             mToggle.setImageDrawable(transitionDrawable);
+            transitionDrawable.setCrossFadeEnabled(true);
             transitionDrawable.startTransition(ANIMATION_DURATION);
         }
 
@@ -299,7 +304,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     public void setBarColors(int[] colors){
         mBarColors = colors;
-        setState(mCurrentState);
+        setState(mCurrentState, false);
     }
 
     private int getToggleColor(int state){
@@ -314,7 +319,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     public void setToggleColors(int[] colors){
         mToggleColors = colors;
-        setState(mCurrentState);
+        setState(mCurrentState, false);
     }
 
     private Drawable getToggleDrawable(int state){
@@ -329,20 +334,25 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     public void setToggleDrawables(Drawable[] drawables){
         mToggleDrawables = drawables;
-        setState(mCurrentState);
+        setState(mCurrentState, false);
     }
 
     @Override
     public void onClick(View view) {
         if (mEnabled) {
-            setState(getNextState());
-            notifyListeners();
+            setState(getNextState(), true);
         }
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        mEnabled = enabled;
+        setState(mCurrentState, false);
     }
 
     public void addStateChangedListener(StateChangedListener listener) {
         if (listener == null) return;
-        if (mListeners == null) mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
         mListeners.add(listener);
     }
 
@@ -350,7 +360,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         if (listener != null && mListeners != null) mListeners.removeAll(Collections.singletonList(listener));
     }
 
-    public void removeAllListeners() {
+    public void removeAllStateChangedListeners() {
         if (mListeners != null) mListeners.clear();
     }
 
@@ -366,6 +376,37 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     public interface StateChangedListener {
         void onStateChange(MultistateSwitch s, int state);
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = (Bundle) super.onSaveInstanceState();
+        bundle.putInt(BUNDLE_KEY_STATE, mCurrentState);
+        bundle.putInt(BUNDLE_KEY_STATES_QTY, mStatesQty);
+        bundle.putBoolean(BUNDLE_KEY_ENABLED, mEnabled);
+        bundle.putInt(BUNDLE_KEY_DIRECTION, mDirection);
+        bundle.putInt(BUNDLE_KEY_BAR_COLOR, mBarColor);
+        bundle.putInt(BUNDLE_KEY_TOGGLE_COLOR, mToggleColor);
+        bundle.putIntArray(BUNDLE_BAR_COLORS, mBarColors);
+        bundle.putIntArray(BUNDLE_TOGGLE_COLORS, mToggleColors);
+        return bundle;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        super.onRestoreInstanceState(state);
+        Bundle prevState = (Bundle) state;
+        mCurrentState = prevState.getInt(BUNDLE_KEY_STATE, DEFAULT_STATE);
+        mStatesQty = prevState.getInt(BUNDLE_KEY_STATES_QTY, DEFAULT_STATES_QTY);
+        mEnabled = prevState.getBoolean(BUNDLE_KEY_ENABLED, DEFAULT_ENABLED);
+        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+        mBarColor = prevState.getInt(BUNDLE_KEY_BAR_COLOR, DEFAULT_BAR_COLOR);
+        mToggleColor = prevState.getInt(BUNDLE_KEY_TOGGLE_COLOR, DEFAULT_TOGGLE_COLOR);
+        mBarColors = prevState.getIntArray(BUNDLE_BAR_COLORS);
+        mToggleColors = prevState.getIntArray(BUNDLE_TOGGLE_COLORS);
+        setState(mCurrentState, false);
+        notifyListeners();
     }
 
     public static class ToggleImageView extends ImageView {

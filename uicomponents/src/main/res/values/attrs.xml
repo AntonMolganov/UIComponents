@@ -21,6 +21,9 @@
             <enum name="left" value="1"/>
             <enum name="bounce" value="2"/>
         </attr>
+        <attr name="barRelativeThickness" format="float"/>
+        <attr name="toggleScale" format="float"/>
+        <attr name="toggleRelativePadding" format="float"/>
         <attr name="barColor" format="color"/>
         <attr name="toggleColor" format="color"/>
         <attr name="toggleDrawable" format="reference"/>

@@ -82,7 +82,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
 
     private final Collection<StateChangedListener> mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
-
+    private int mWidth;
+    private int mHeight;
 
 
     public MultistateSwitch(Context context) {
@@ -153,8 +154,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             setLayoutTransition(null);
         }
         mCurrentState = state;
-        setDrawables();
         setPositions();
+        setDrawables();
         notifyListeners();
     }
 
@@ -189,42 +190,42 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
 
-        int width;
-        int height;
-
-
         int default_height = getResources().getDimensionPixelSize(R.dimen.multistateswitch_default_height);
 
         if (widthMode != MeasureSpec.EXACTLY && heightMode != MeasureSpec.EXACTLY){
-            height = default_height;
-            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && height < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
-            width = mSpecifiedDivisionLength * (mStatesQty - 1) + height;
-            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && width < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+            mHeight = default_height;
+            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && mHeight < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(mHeight, MeasureSpec.EXACTLY);
+            mWidth = mSpecifiedDivisionLength * (mStatesQty - 1) + mHeight;
+            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && mWidth < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(mWidth, MeasureSpec.EXACTLY);
         }else if (widthMode != MeasureSpec.EXACTLY){
-            height = MeasureSpec.getSize(heightMeasureSpec);
-            width = mSpecifiedDivisionLength * (mStatesQty - 1) + height;
-            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && width < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+            mHeight = MeasureSpec.getSize(heightMeasureSpec);
+            mWidth = mSpecifiedDivisionLength * (mStatesQty - 1) + mHeight;
+            if ((widthMode == MeasureSpec.UNSPECIFIED) || (widthMode == MeasureSpec.AT_MOST && mWidth < MeasureSpec.getSize(widthMeasureSpec))) widthMeasureSpec = MeasureSpec.makeMeasureSpec(mWidth, MeasureSpec.EXACTLY);
         }else if (heightMode != MeasureSpec.EXACTLY){
-            width = MeasureSpec.getSize(widthMeasureSpec);
-            if (width < default_height) {
-                height = width;
+            mWidth = MeasureSpec.getSize(widthMeasureSpec);
+            if (mWidth < default_height) {
+                mHeight = mWidth;
             }else{
-                height = default_height;
+                mHeight = default_height;
             }
-            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && height < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
+            if ((heightMode == MeasureSpec.UNSPECIFIED) || (heightMode == MeasureSpec.AT_MOST && mHeight < MeasureSpec.getSize(heightMeasureSpec))) heightMeasureSpec = MeasureSpec.makeMeasureSpec(mHeight, MeasureSpec.EXACTLY);
         }
         if (MeasureSpec.getSize(widthMeasureSpec) < MeasureSpec.getSize(heightMeasureSpec)) heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getMode(heightMeasureSpec));
 
         mDivisionLength = Math.round(((float)MeasureSpec.getSize(widthMeasureSpec) - MeasureSpec.getSize(heightMeasureSpec)) / (mStatesQty - 1));
+
+        mWidth = MeasureSpec.getSize(widthMeasureSpec);
+        mHeight = MeasureSpec.getSize(heightMeasureSpec);
 
         setPositions();
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     private void setPositions() {
+        //set bar
         if (mToggleScale > 1){
-            int barHeight = Math.round((float)mToggle.getHeight()  / mToggleScale);
-            int barMargin = Math.round(((float)getHeight()-barHeight)/2);
+            int barHeight = Math.round(mHeight / mToggleScale);
+            int barMargin = Math.round(((float)mHeight - barHeight)/2);
             MarginLayoutParams barParams = ((MarginLayoutParams) mBar.getLayoutParams());
             barParams.setMargins(barMargin,
                     barMargin,
@@ -233,17 +234,23 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             mBar.setLayoutParams(barParams);
         }
 
+        //set toggle
         MarginLayoutParams toggleParams = ((MarginLayoutParams) mToggle.getLayoutParams());
         if (mToggleScale < 1){
-            int toggleSize = Math.round(getHeight() * mToggleScale);
-            int toggleVerticalMargin = Math.round((getHeight() - toggleSize) / 2);
-            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? toggleVerticalMargin + mDivisionLength * mCurrentState : getWidth() - mToggle.getWidth() - toggleVerticalMargin;
+
+
+            int toggleSize = Math.round(mHeight * mToggleScale);
+            int toggleVerticalMargin = Math.round((mHeight - toggleSize) / 2);
+            toggleSize = mHeight - toggleVerticalMargin * 2;
+
+            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? (toggleVerticalMargin + mDivisionLength * mCurrentState) : (mWidth - toggleSize - toggleVerticalMargin);
             toggleParams.setMargins(toggleLeftMargin,
                     toggleVerticalMargin,
                     toggleParams.rightMargin,
                     toggleVerticalMargin);
         }else{
-            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? mDivisionLength * mCurrentState : getWidth() - mToggle.getWidth();
+            int toggleSize = mHeight;
+            int toggleLeftMargin = (mCurrentState != mStatesQty - 1) ? (mDivisionLength * mCurrentState) : (mWidth - toggleSize);
             toggleParams.setMargins(toggleLeftMargin,
                     toggleParams.topMargin,
                     toggleParams.rightMargin,

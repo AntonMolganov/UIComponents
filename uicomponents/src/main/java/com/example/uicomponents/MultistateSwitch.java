@@ -387,7 +387,10 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        Bundle bundle = (Bundle) super.onSaveInstanceState();
+        Parcelable superState = super.onSaveInstanceState();
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("superState", super.onSaveInstanceState());
         bundle.putInt(BUNDLE_KEY_STATE, mCurrentState);
         bundle.putInt(BUNDLE_KEY_STATES_QTY, mStatesQty);
         bundle.putBoolean(BUNDLE_KEY_ENABLED, mEnabled);
@@ -401,19 +404,23 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
+
+        if (state instanceof Bundle) // implicit null check
+        {
+            Bundle prevState = (Bundle) state;
+            mCurrentState = prevState.getInt(BUNDLE_KEY_STATE, DEFAULT_STATE);
+            mStatesQty = prevState.getInt(BUNDLE_KEY_STATES_QTY, DEFAULT_STATES_QTY);
+            mEnabled = prevState.getBoolean(BUNDLE_KEY_ENABLED, DEFAULT_ENABLED);
+            mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+            mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
+            mBarColor = prevState.getInt(BUNDLE_KEY_BAR_COLOR, DEFAULT_BAR_COLOR);
+            mToggleColor = prevState.getInt(BUNDLE_KEY_TOGGLE_COLOR, DEFAULT_TOGGLE_COLOR);
+            mBarColors = prevState.getIntArray(BUNDLE_BAR_COLORS);
+            mToggleColors = prevState.getIntArray(BUNDLE_TOGGLE_COLORS);
+            setState(mCurrentState, false);
+            notifyListeners();
+        }
         super.onRestoreInstanceState(state);
-        Bundle prevState = (Bundle) state;
-        mCurrentState = prevState.getInt(BUNDLE_KEY_STATE, DEFAULT_STATE);
-        mStatesQty = prevState.getInt(BUNDLE_KEY_STATES_QTY, DEFAULT_STATES_QTY);
-        mEnabled = prevState.getBoolean(BUNDLE_KEY_ENABLED, DEFAULT_ENABLED);
-        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
-        mDirection = prevState.getInt(BUNDLE_KEY_DIRECTION, DEFAULT_DIRECTION);
-        mBarColor = prevState.getInt(BUNDLE_KEY_BAR_COLOR, DEFAULT_BAR_COLOR);
-        mToggleColor = prevState.getInt(BUNDLE_KEY_TOGGLE_COLOR, DEFAULT_TOGGLE_COLOR);
-        mBarColors = prevState.getIntArray(BUNDLE_BAR_COLORS);
-        mToggleColors = prevState.getIntArray(BUNDLE_TOGGLE_COLORS);
-        setState(mCurrentState, false);
-        notifyListeners();
     }
 
     public static class ToggleImageView extends ImageView {

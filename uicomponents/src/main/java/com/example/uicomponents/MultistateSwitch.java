@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -80,6 +81,9 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     private Drawable mToggleDrawable;
     private Drawable[] mToggleDrawables;
 
+    private TextView mLabelTextView;
+    private CharSequence[] mLabelStrings;
+
 
     private final Collection<StateChangedListener> mListeners = Collections.synchronizedCollection(new LinkedList<StateChangedListener>());
     private int mWidth;
@@ -115,10 +119,15 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             mStatesQty = typedArray.getInt(R.styleable.MultistateSwitch_states_qty, DEFAULT_STATES_QTY);
             if (mStatesQty < 2) mStatesQty = 2;
             if (mCurrentState > mStatesQty -1) mCurrentState = mStatesQty -1;
+            if (mCurrentState < 0) mCurrentState = 0;
             mEnabled = typedArray.getBoolean(R.styleable.MultistateSwitch_enabled, true);
             mDirection = typedArray.getInt(R.styleable.MultistateSwitch_direction, DIRECTION_RIGHT);
+            if (mCurrentState < mStatesQty-1 ) {
+                mCurrentDirection = DIRECTION_RIGHT;
+            }else{
+                mCurrentDirection = DIRECTION_LEFT;
+            }
 
-            mCurrentDirection = DIRECTION_RIGHT;
             mBarColor = typedArray.getColor(R.styleable.MultistateSwitch_barColor, DEFAULT_BAR_COLOR);
             mToggleColor = typedArray.getColor(R.styleable.MultistateSwitch_toggleColor, DEFAULT_TOGGLE_COLOR);
             mToggleScale = typedArray.getFloat(R.styleable.MultistateSwitch_toggleScale, DEFAULT_TOGGLE_SCALE);
@@ -154,8 +163,14 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             setLayoutTransition(null);
         }
         mCurrentState = state;
+        if (mDirection == DIRECTION_BOUNCE) {
+            if (mCurrentState == mStatesQty -1) mCurrentDirection = DIRECTION_LEFT;
+            if (mCurrentState == 0) mCurrentDirection = DIRECTION_RIGHT;
+        }
+
         setPositions();
         setDrawables();
+        setLabel();
         notifyListeners();
     }
 
@@ -169,14 +184,12 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         }else if (mDirection == DIRECTION_BOUNCE) {
             if (mCurrentDirection == DIRECTION_RIGHT){
                 if (mCurrentState < mStatesQty -1) mCurrentState++;
-                else if (mCurrentState == mStatesQty -1) {
-                    mCurrentState--;
+                if (mCurrentState == mStatesQty -1){
                     mCurrentDirection = DIRECTION_LEFT;
                 }
             }else{
                 if (mCurrentState > 0) mCurrentState--;
-                else if (mCurrentState == 0) {
-                    mCurrentState++;
+                if (mCurrentState == 0) {
                     mCurrentDirection = DIRECTION_RIGHT;
                 }
             }
@@ -318,8 +331,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         if (mToggleColors == null || mToggleColors.length == 0) {
             return mToggleColor;
         }else{
-            if (mCurrentState > mToggleColors.length - 1) return mToggleColors[mToggleColors.length - 1];
-            if (mCurrentState < 0) return mToggleColors[0];
+            if (state > mToggleColors.length - 1) return mToggleColors[mToggleColors.length - 1];
+            if (state < 0) return mToggleColors[0];
             return mToggleColors[state];
         }
     }
@@ -333,8 +346,8 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
         if (mToggleDrawables == null || mToggleDrawables.length == 0) {
             return mToggleDrawable;
         }else{
-            if (mCurrentState > mToggleDrawables.length - 1) return mToggleDrawables[mToggleDrawables.length - 1];
-            if (mCurrentState < 0) return mToggleDrawables[0];
+            if (state > mToggleDrawables.length - 1) return mToggleDrawables[mToggleDrawables.length - 1];
+            if (state < 0) return mToggleDrawables[0];
             return mToggleDrawables[state];
         }
     }
@@ -342,6 +355,25 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     public void setToggleDrawables(Drawable[] drawables){
         mToggleDrawables = drawables;
         setState(mCurrentState, false);
+    }
+
+    public void attachTextView(TextView textview, CharSequence[] strings){
+        this.mLabelTextView = textview;
+        this.mLabelStrings = strings;
+    }
+
+    private void setLabel(){
+        if (mLabelTextView != null && mLabelStrings != null && mLabelStrings.length > 0 ) {
+            CharSequence text;
+            if (mCurrentState > mLabelStrings.length - 1) {
+                text = mLabelStrings[mLabelStrings.length - 1];
+            }else if (mCurrentState < 0) {
+                text = mLabelStrings[0];
+            }else{
+                text = mLabelStrings[mCurrentState];
+            }
+            mLabelTextView.setText(text);
+        }
     }
 
     @Override

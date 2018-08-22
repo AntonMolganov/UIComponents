@@ -90,6 +90,9 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     private int mHeight;
 
 
+    public String debuginfo;
+
+
     public MultistateSwitch(Context context) {
         this(context, null);
     }
@@ -155,6 +158,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     }
 
     public void setState(int state, boolean animated) {
+        int oldState = mCurrentState;
         if (animated){
             mParentLayout.setLayoutTransition(mLayoutTransition);
             setLayoutTransition(mLayoutTransition);
@@ -162,39 +166,37 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
             mParentLayout.setLayoutTransition(null);
             setLayoutTransition(null);
         }
+
         mCurrentState = state;
         if (mDirection == DIRECTION_BOUNCE) {
-            if (mCurrentState == mStatesQty -1) mCurrentDirection = DIRECTION_LEFT;
+            if (mCurrentState == mStatesQty - 1) mCurrentDirection = DIRECTION_LEFT;
             if (mCurrentState == 0) mCurrentDirection = DIRECTION_RIGHT;
         }
 
         setPositions();
         setDrawables();
         setLabel();
-        notifyListeners();
+        if (oldState != mCurrentState) notifyListeners();
     }
 
-    private int getNextState() {
+    private void setNextState() {
+        int nextState = 0;
         if (mDirection == DIRECTION_RIGHT) {
-            mCurrentState++;
-            if (mCurrentState > mStatesQty -1) mCurrentState = 0;
+            nextState = mCurrentState + 1;
+            if (nextState > mStatesQty -1) nextState = 0;
         }else if (mDirection == DIRECTION_LEFT){
-            mCurrentState--;
-            if (mCurrentState < 0) mCurrentState = mStatesQty -1;
+            nextState = mCurrentState - 1;
+            if (nextState < 0) nextState = mStatesQty -1;
         }else if (mDirection == DIRECTION_BOUNCE) {
             if (mCurrentDirection == DIRECTION_RIGHT){
-                if (mCurrentState < mStatesQty -1) mCurrentState++;
-                if (mCurrentState == mStatesQty -1){
-                    mCurrentDirection = DIRECTION_LEFT;
-                }
+                nextState = mCurrentState + 1;
+                if (nextState > mStatesQty - 1) nextState = mStatesQty - 2;
             }else{
-                if (mCurrentState > 0) mCurrentState--;
-                if (mCurrentState == 0) {
-                    mCurrentDirection = DIRECTION_RIGHT;
-                }
+                nextState = mCurrentState - 1;
+                if (nextState < 0) nextState = 1;
             }
         }
-        return mCurrentState;
+        setState(nextState, true);
     }
 
     @Override
@@ -379,7 +381,7 @@ public class MultistateSwitch extends RelativeLayout implements View.OnClickList
     @Override
     public void onClick(View view) {
         if (mEnabled) {
-            setState(getNextState(), true);
+            setNextState();
         }
     }
 
